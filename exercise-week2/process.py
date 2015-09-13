@@ -20,7 +20,7 @@ def process_text(filename="input.txt"):
     collapsed = re.sub(r'\n([^A-Z])',r"\1", unhyphened)
 
     #Place newlines where a dot, a character, a capital,
-    #OPTIONAL WHITESPACE, NOT a dot pattern is present
+    #NOT (OPTIONAL whitespace, a dot) pattern is present
     rebuilt = re.sub(r'[.][ ]([A-Z])([^?\s.])', r'.\n\1\2', collapsed)
 
     #Re-add the multiple empty lines
