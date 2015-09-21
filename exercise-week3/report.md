@@ -29,17 +29,17 @@ Calculating the agreement was pretty straightforward, we both entered our annota
 ### Exercise 2: Classifier evaluation
 
 **a.**
-* i.
-* ii.
+* i. `10/14` = 0.71
+* ii. `10/24` = 0.41
 
 **b.**
-* i.
-* ii.
+* i. `22/36` = 0.61
+* ii. `22/26` = 0.85
 
 **c.**
-* i.
-* ii.
+* i. `(0.71+0.61) / 2` = 0.76
+* ii. `(0.41+0.85) / 2` = 0.63
 
 **d.**
-* i.
-* ii.
+* i. `32/50` = 0.64
+* ii. I suppose the micro recall is asked here, which is `32/50` = 0.64
