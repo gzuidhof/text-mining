@@ -55,6 +55,11 @@ docs/_build/
 
 # PyBuilder
 target/
+
+
 *.spyderproject
 .spyderworkspace
 exercise-week2/out.txt
+
+*DS_Store*
+project/data/*.xml
