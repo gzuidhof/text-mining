@@ -62,4 +62,4 @@ target/
 exercise-week2/out.txt
 
 *DS_Store*
-project/data/*.xml
+project/data/*
