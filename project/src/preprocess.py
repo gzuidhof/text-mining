@@ -2,6 +2,7 @@ import xmltodict
 import glob
 import unicodedata
 import pickle
+import codecs
 from collections import Counter, OrderedDict
 
 RAW_DATA_FOLDER = '..\\data\\raw'
@@ -108,12 +109,17 @@ if __name__ == '__main__':
             plain_text = []
             as_plain_text(content, plain_text)
 
-            with open(PLAINTEXT_FOLDER+'\\'+file_id+'.txt', 'w') as f:
-                plain_text_ascii = [unicodedata.normalize('NFKD',line).encode('ascii','ignore')
-                    for line in plain_text]
+            with codecs.open(PLAINTEXT_FOLDER+'\\'+file_id+'.txt', 'w', 'utf-8') as f:
+                 for line in plain_text:
+                        print>>f, line
+                #f.writelines(plain_text) Does not append newlines :<
 
-                for line in plain_text_ascii:
-                    print>>f, line
+            #with open(PLAINTEXT_FOLDER+'\\'+file_id+'.txt', 'w') as f:
+            #    plain_text_ascii = [unicodedata.normalize('NFKD',line).encode('ascii','ignore')
+            #        for line in plain_text]
+#
+            #    for line in plain_text_ascii:
+            #        print>>f, line
 
         #Print progress
         if i % 100 == 0:
