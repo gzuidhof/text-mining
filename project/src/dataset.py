@@ -22,6 +22,9 @@ def split_dataset():
     y = [(key, y_dict[key]) for key in keys]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+    print 'Dataset split into trainset of ', len(X_train), 'and testset of', len(X_test)
+
+    print 'Now writing to file'
 
     filenames=['x_train.p','x_test.p','y_train.p','y_test.p']
     data = [X_train, X_test, y_train, y_test]
@@ -29,6 +32,8 @@ def split_dataset():
     for filename, dat in zip(filenames, data):
         with open(PROCESSED_FOLDER+'\\'+filename, 'w') as f:
             pickle.dump(dat,f)
+            
+    print 'Done'
 
 def load_train():
     with open(PROCESSED_FOLDER+'\\x_train.p', 'r') as f:
