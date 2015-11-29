@@ -12,6 +12,7 @@ def make_binary_y(y, val=0):
 
 
 if __name__ == '__main__':
+    #Load train data
     X_train,y_train,filenames_train = dataset.load_train()
     y_train_binary = make_binary_y(y_train) #True or False, 0,1
 
@@ -25,9 +26,7 @@ if __name__ == '__main__':
 
     clf.fit(X_train, y_train_binary)
 
-
-
-
+    #Load test data
     X_test,y_test,filenames_test = dataset.load_test()
     y_test_binary = make_binary_y(y_test) #True or False, 0,1
 
@@ -35,3 +34,4 @@ if __name__ == '__main__':
     print "Predicted:", clf.predict(X_test)
     print "Probabilities:", clf.predict_proba(X_test)
     print "Accuracy:", clf.score(X_test, y_test_binary)
+    print "Mean label", 1-np.mean(y_test_binary), 1-np.mean(y_train_binary)
