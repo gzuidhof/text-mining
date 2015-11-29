@@ -64,7 +64,7 @@ if __name__ == '__main__':
             clamclient.addinputfile(project, data.inputtemplate(inputtemplate), localfilename, encoding='utf-8')
 
         print "Adding files to project!"
-        pool = ThreadPool(processes=50)
+        pool = ThreadPool(processes=24)
         num_tasks = len(files)
         for i, _ in enumerate(pool.imap_unordered(add_file_to_clam, files), 1):
             sys.stderr.write('\rdone {0:%}'.format(i/num_tasks))
