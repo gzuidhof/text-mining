@@ -49,7 +49,6 @@ if __name__ == '__main__':
     for k,v in ordered.iteritems():
         print k, v[:65]
 
-
     with open(DATA_FOLDER+'\\processed.p','w') as f:
         pickle.dump(ordered,f)
     print "Done!"
