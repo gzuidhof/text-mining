@@ -129,8 +129,6 @@ if __name__ == '__main__':
     with open(DATA_FOLDER+'\\labels.p','w') as f:
         pickle.dump(label_dict, f)
 
-
-
     print '\n---overall'
     #print set(all_labels)
     print len(set(all_labels))
