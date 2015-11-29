@@ -26,7 +26,7 @@ if __name__ == '__main__':
     INPUT_FOLDER = '..\\data\\plaintext\\'
     OUTPUT_FOLDER = '..\\data\\frogged\\'
 
-    MANUAL = False
+    MANUAL = True
 
 
     files = glob.glob(INPUT_FOLDER+'/*.txt')
@@ -101,21 +101,24 @@ if __name__ == '__main__':
 
     #If everything went well, the system is now running, we simply wait until it is done and retrieve the status in the meantime
     while data.status != clam.common.status.DONE:
-        time.sleep(2) #wait 2 seconds before polling status
-        data = clamclient.get(project) #get status again
+        try:
+            time.sleep(2) #wait 2 seconds before polling status
+            data = clamclient.get(project) #get status again
 
-        current_filename = data.statusmessage.split(' ')[-1].split('...')[0]
-        if current_filename not in seen:
-            seen.append(current_filename)
+            current_filename = data.statusmessage.split(' ')[-1].split('...')[0]
+            if current_filename not in seen:
+                seen.append(current_filename)
 
 
-        print '> PROCESSING', current_filename, str(len(seen))+'/'+str(len(files))
+            print '> PROCESSING', current_filename, str(len(seen))+'/'+str(len(files))
 
-        runtime = time.time() - start_time
-        per_document_time = runtime/len(seen)
-        remaining_time = (len(files)-len(seen))*per_document_time
-        total_time = remaining_time+runtime
-        print "RUNTIME", duration_to_string(runtime), "("+duration_to_string(per_document_time)+")", 'REMAINING', duration_to_string(remaining_time), 'TOTAL', duration_to_string(total_time)
+            runtime = time.time() - start_time
+            per_document_time = runtime/len(seen)
+            remaining_time = (len(files)-len(seen))*per_document_time
+            total_time = remaining_time+runtime
+            print "RUNTIME", duration_to_string(runtime), "("+duration_to_string(per_document_time)+")", 'REMAINING', duration_to_string(remaining_time), 'TOTAL', duration_to_string(total_time)
+        except:
+            print "Error, but continuing"
 
     #Iterate over output files
     for outputfile in data.output:

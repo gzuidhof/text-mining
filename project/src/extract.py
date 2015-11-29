@@ -112,14 +112,6 @@ if __name__ == '__main__':
             with codecs.open(PLAINTEXT_FOLDER+'\\'+file_id+'.txt', 'w', 'utf-8') as f:
                  for line in plain_text:
                         print>>f, line
-                #f.writelines(plain_text) Does not append newlines :<
-
-            #with open(PLAINTEXT_FOLDER+'\\'+file_id+'.txt', 'w') as f:
-            #    plain_text_ascii = [unicodedata.normalize('NFKD',line).encode('ascii','ignore')
-            #        for line in plain_text]
-#
-            #    for line in plain_text_ascii:
-            #        print>>f, line
 
         #Print progress
         if i % 100 == 0:

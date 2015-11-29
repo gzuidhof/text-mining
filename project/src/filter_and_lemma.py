@@ -28,7 +28,7 @@ def process(filepath):
     df = df.drop(['PoSConfidence','Token','Morph'],axis=1)
     df = filter_dataframe(df)
 
-    as_string = " ".join(list(df['Lemma']))
+    as_string = " ".join( [str(val) for val in list(df['Lemma'])])
     lowercased = as_string.lower()
     return lowercased
 
