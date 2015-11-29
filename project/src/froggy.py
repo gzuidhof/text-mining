@@ -9,6 +9,7 @@ import time
 from credentials import USERNAME, PASSWORD
 import requests
 import glob
+from multiprocessing.pool import ThreadPool
 
 def duration_to_string(seconds):
     m, s = divmod(seconds, 60)
@@ -25,12 +26,12 @@ if __name__ == '__main__':
     INPUT_FOLDER = '..\\data\\plaintext\\'
     OUTPUT_FOLDER = '..\\data\\frogged\\'
 
-    MANUAL = True
+    MANUAL = False
 
 
     files = glob.glob(INPUT_FOLDER+'/*.txt')
 
-    #Set roject name
+    #Set project name
     if MANUAL:
         project="manual"
     else:
@@ -59,10 +60,16 @@ if __name__ == '__main__':
         #inputtemplate="foliainput" #FoLiA XML document (FoLiAXMLFormat)
         #    The following parameters may be specified for this input template:
 
-        for i, localfilename in enumerate(files):
+        def add_file_to_clam(localfilename):
             clamclient.addinputfile(project, data.inputtemplate(inputtemplate), localfilename, encoding='utf-8')
-            if i%10==0:
-                print 'ADDING FILES TO CLAM PROJECT',i,'/',len(files)
+
+        print "Adding files to project!"
+        pool = ThreadPool(processes=50)
+        num_tasks = len(files)
+        for i, _ in enumerate(pool.imap_unordered(add_file_to_clam, files), 1):
+            sys.stderr.write('\rdone {0:%}'.format(i/num_tasks))
+        pool.join()
+        pool.close()
 
 
     #Start project execution with custom parameters. Parameters are specified as Python keyword arguments to the start() method (parameterid=value)
