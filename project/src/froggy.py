@@ -16,6 +16,9 @@ def duration_to_string(seconds):
     h, m = divmod(m, 60)
     return "%d:%02d:%02d" % (h, m, s)
 
+# Calls frog on all text files
+# Uses the CLAM REST api
+# Does not seem to work for large sets of files (>1000)
 
 if __name__ == '__main__':
     #create client, connect to server.
