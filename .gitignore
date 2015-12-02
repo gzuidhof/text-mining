@@ -63,4 +63,4 @@ exercise-week2/out.txt
 
 *DS_Store*
 project/data/*
-project/src/credentials.py
+project/models/*
