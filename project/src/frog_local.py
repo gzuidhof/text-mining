@@ -4,6 +4,7 @@ import time
 import frog
 import glob
 import util
+from multiprocessing.pool import Pool
 
 def duration_to_string(seconds):
     m, s = divmod(seconds, 60)
@@ -11,11 +12,11 @@ def duration_to_string(seconds):
     return "%d:%02d:%02d" % (h, m, s)
 
 
-def frog_process_files(files, verbose=False):
+def frog_process_files(files, verbose=True):
     seen = []
     start_time = time.time()
 
-    frogger = frog.Frog(frog.FrogOptions(parser=False,mwu=False,ner=False,morph=False,chunking=False), "/etc/frog/frog.cfg")
+    frogger = frog.Frog(frog.FrogOptions(parser=False,mwu=False,ner=False,morph=False,chunking=False, numThreads=8), "/etc/frog/frog.cfg")
 
     for i, filename in enumerate(files):
         with open(filename,'r') as in_file:
@@ -38,7 +39,6 @@ def frog_process_files(files, verbose=False):
                'TOTAL', duration_to_string(total_time))
 
         frogged_filename = util.filename_without_extension(filename, '.txt')
-        #frogged_filename = filename.split('/')[-1].split('.txt')[0]
 
         with open(OUTPUT_FOLDER+frogged_filename+'.frog.out', 'w') as f:
             f.write(output)
@@ -48,4 +48,12 @@ if __name__ == '__main__':
     OUTPUT_FOLDER = '../data/frogged_new/'
 
     files = util.todo_filepaths(INPUT_FOLDER, '.txt', OUTPUT_FOLDER, '.frog.out')
-    frog_process_files(files)
+    print ("N_CPU", util.CPU_COUNT)
+    n_processes = 1
+
+    file_chunks = util.split(files, n_processes)
+
+    pool = Pool(processes=n_processes)
+    pool.map(frog_process_files, file_chunks)
+    pool.join()
+    pool.close()

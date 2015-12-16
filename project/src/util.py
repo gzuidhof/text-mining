@@ -8,9 +8,14 @@ CPU_COUNT = multiprocessing.cpu_count()
 def filename_without_extension(filepath, extension='.xml'):
     return filepath.split(os.sep)[-1][:-1*len(extension)]
 
+#Chunk list in chunks of size n
 def chunks(l, n):
     n = max(1, n)
     return [l[i:i + n] for i in range(0, len(l), n)]
+
+#Split list into n parts
+def split(lst,n):
+    return [ lst[i::n] for i in range(n if n < len(lst) else len(lst)) ]
 
 def todo_filepaths(in_folder, in_extension, out_folder=None, out_extension=None, blacklist=[]):
     in_filenames = glob.glob(in_folder+'*'+in_extension)
