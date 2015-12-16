@@ -65,3 +65,6 @@ exercise-week2/out.txt
 project/data/*
 project/models/*
 *predictions.png
+*.p
+*.p
+project/src/predictions.png

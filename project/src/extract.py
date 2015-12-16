@@ -13,7 +13,8 @@ PLAINTEXT_FOLDER = '../data/plaintext/'
 DATA_FOLDER = '../data/'
 
 #Nonsense files (website sources, PDFs)
-BLACKLIST = ['111251559.xml']
+#BLACKLIST = ['111251559.xml']
+BLACKLIST=[]
 for x in range(95484218,95484250):
     BLACKLIST.append(str(x)+'.xml')
 BLACKLIST = map(lambda x: RAW_DATA_FOLDER+x, BLACKLIST)
@@ -54,9 +55,15 @@ def extract_plaintext(filepath, outpath):
         #Filename without extension
         file_id = util.filename_without_extension(filepath)
 
-        obj = xmltodict.parse(fd.read())
-        root = obj['open-rechtspraak']
-        metadata = root['rdf:RDF']
+        try:
+            obj = xmltodict.parse(fd.read())
+            root = obj['open-rechtspraak']
+            metadata = root['rdf:RDF']
+        except:
+            print "\nUnexpected error:", sys.exc_info()[0]
+            print "filepath:", filepath
+            print "file_id:", file_id, "\n"
+            return
 
         if 'uitspraak' in root:
             content = root['uitspraak']
@@ -80,9 +87,14 @@ def extract_labels(filepath):
         #Filename without extension
         file_id = util.filename_without_extension(filepath)
 
-        obj = xmltodict.parse(fd.read())
-        root = obj['open-rechtspraak']
-        metadata = root['rdf:RDF']
+        try:
+            obj = xmltodict.parse(fd.read())
+            root = obj['open-rechtspraak']
+            metadata = root['rdf:RDF']
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
+            print "filepath:", filepath
+            print "file_id:", file_id
 
         #############
         # Extract labels
@@ -124,7 +136,7 @@ def extract_all_labels(filenames, out_filepath=DATA_FOLDER+'labels.p', chunk_siz
             label_dict[file_id] = labels
             all_labels += labels
 
-        print i, '/', len(filenames_chunks)
+        print i+1, '/', len(filenames_chunks)
 
     #Write labels to file
     with open(out_filepath,'w') as f:
