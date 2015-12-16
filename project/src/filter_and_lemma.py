@@ -10,7 +10,7 @@ INPUT_FOLDER = '../data/frogged'
 DATA_FOLDER = '../data'
 
 #PoS filter #http://ilk.uvt.nl/menno/files/docs/p_lrec_nlp4ugc12.pdf
-FILTER = tuple(['LET','TW','LID','VG', 'VZ','SPEC(symb)'])
+FILTER = tuple(['LET','TW','LID','VG', 'VZ','SPEC(symb)','BW','VNW'])
 #LET (Leesteken aka Punctiation)
 #TW (Telwoord aka Number/ordinal)
 #LID (Lidwoord aka Determiner)

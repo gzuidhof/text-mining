@@ -1,19 +1,23 @@
+from __future__ import division
 import xmltodict
 import glob
-import unicodedata
 import pickle
 import codecs
+import util
+import os, sys
 from collections import Counter, OrderedDict
+from multiprocessing.pool import ThreadPool, Pool
 
-RAW_DATA_FOLDER = '..\\data\\raw'
-PLAINTEXT_FOLDER = '..\\data\\plaintext'
-DATA_FOLDER = '..\\data'
+RAW_DATA_FOLDER = '../data/raw/'
+PLAINTEXT_FOLDER = '../data/plaintext/'
+DATA_FOLDER = '../data/'
 
 #Nonsense files (website sources, PDFs)
 BLACKLIST = ['111251559.xml']
 for x in range(95484218,95484250):
     BLACKLIST.append(str(x)+'.xml')
-BLACKLIST = map(lambda x: RAW_DATA_FOLDER+'\\'+x, BLACKLIST)
+BLACKLIST = map(lambda x: RAW_DATA_FOLDER+x, BLACKLIST)
+BLACKLIST = [os.path.normpath(path) for path in BLACKLIST]
 
 #Only used for debugging (for checking whether all relevant text is extracted)
 NONSENSE_KEYS = ['@lang','@id','@xml:space','@xmlns','@role','@mark','@xmlns:xsd',
@@ -44,94 +48,121 @@ def as_plain_text(node, text_so_far):
             elif key not in NONSENSE_KEYS and value is not None:
                 print "UNEXPECTED KEY/VALUE", key, value
 
+def extract_plaintext(filepath, outpath):
+    with open(filepath) as fd:
+
+        #Filename without extension
+        file_id = util.filename_without_extension(filepath)
+
+        obj = xmltodict.parse(fd.read())
+        root = obj['open-rechtspraak']
+        metadata = root['rdf:RDF']
+
+        if 'uitspraak' in root:
+            content = root['uitspraak']
+        else:
+            content = root['conclusie']
+
+        #############
+        # Extract content as plain text
+        #############
+
+        plain_text = []
+        as_plain_text(content, plain_text)
+
+        with codecs.open(outpath+file_id+'.txt', 'w', 'utf-8') as f:
+             for line in plain_text:
+                    print>>f, line
+
+def extract_labels(filepath):
+    with open(filepath) as fd:
+
+        #Filename without extension
+        file_id = util.filename_without_extension(filepath)
+
+        obj = xmltodict.parse(fd.read())
+        root = obj['open-rechtspraak']
+        metadata = root['rdf:RDF']
+
+        #############
+        # Extract labels
+        #############
+
+        description = metadata['rdf:Description']
+
+        if type(description) is list:
+            description = description[0]
+        law_areas = description['dcterms:subject']
+
+        if type(law_areas) is not list:
+            law_areas = [law_areas]
+
+        text_labels = []
+        for x in law_areas:
+            labels = x['#text'].split('; ')
+            text_labels += labels
+
+        return text_labels
+
+        label_dict[file_id] = text_labels
 
 
-if __name__ == '__main__':
-
-    filenames = glob.glob(RAW_DATA_FOLDER+'/*.xml')
-    filenames = [x for x in filenames if x not in BLACKLIST]
-
+def extract_all_labels(filenames, out_filepath=DATA_FOLDER+'labels.p', chunk_size=1000):
+    print "EXTRACTING ALL LABELS INTO {1}".format(out_filepath)
     all_labels = []
-    conclusion_labels = []
-    verdict_labels = []
-
     label_dict = {}
 
-    for i, filepath in enumerate(filenames):
-        with open(filepath) as fd:
+    filenames_chunks = util.chunks(filenames, chunk_size)
 
-            #Filename without extension
-            file_id = filepath.split('\\')[-1][:-4]
+    for i, chunk in enumerate(filenames_chunks):
+        pool = Pool(processes=util.CPU_COUNT)
+        chunk_labels = pool.map(extract_labels, chunk)
+        pool.close()
 
-            #print i, filename
+        for filepath, labels in zip(chunk, chunk_labels):
+            file_id = util.filename_without_extension(filepath)
+            label_dict[file_id] = labels
+            all_labels += labels
 
-            obj = xmltodict.parse(fd.read())
-            root = obj['open-rechtspraak']
-            metadata = root['rdf:RDF']
-
-            if 'uitspraak' in root:
-                content = root['uitspraak']
-                is_verdict = True
-            else:
-                content = root['conclusie']
-                is_verdict = False
-
-            #############
-            # Extract labels
-            #############
-
-            description = metadata['rdf:Description']
-
-            if type(description) is list:
-                description = description[0]
-            law_areas = description['dcterms:subject']
-
-            if type(law_areas) is not list:
-                law_areas = [law_areas]
-
-            text_labels = []
-            for x in law_areas:
-                labels = x['#text'].split('; ')
-                all_labels += labels
-                text_labels += labels
-
-                if is_verdict:
-                    verdict_labels += labels
-                else:
-                    conclusion_labels += labels
-
-            label_dict[file_id] = text_labels
-
-            #############
-            # Extract content as plain text
-            #############
-
-            plain_text = []
-            as_plain_text(content, plain_text)
-
-            with codecs.open(PLAINTEXT_FOLDER+'\\'+file_id+'.txt', 'w', 'utf-8') as f:
-                 for line in plain_text:
-                        print>>f, line
-
-        #Print progress
-        if i % 100 == 0:
-            print i, '/', len(filenames)
+        print i, '/', len(filenames_chunks)
 
     #Write labels to file
-    with open(DATA_FOLDER+'\\labels.p','w') as f:
+    with open(out_filepath,'w') as f:
         pickle.dump(label_dict, f)
 
-    print '\n---overall'
-    #print set(all_labels)
+    print '\nLabels:'
     print len(set(all_labels))
     print Counter(all_labels)
 
-    print '\n---conclusion'
-    #print set(conclusion_labels)
-    print len(set(conclusion_labels))
-    print Counter(conclusion_labels)
 
-    print '\n---verdict\n'
-    #print set(verdict_labels)
-    print len(set(verdict_labels))
-    print Counter(verdict_labels)
+#Necessary for multiprocess map function, which can only have one variable
+#as input, so we encode it in one tuple
+#
+#Using a partial function did not work, as that can not be pickled.
+def __extract_plaintext_as_tuple(filename_outfolder_tuple):
+    filename, out_folder = filename_outfolder_tuple
+    return extract_plaintext(filename, out_folder)
+
+
+def extract_all_plaintext(filenames, out_folder=PLAINTEXT_FOLDER):
+    print "EXTRACTING ALL PLAINTEXT FROM {0} FILES INTO {1}".format(len(filenames),out_folder)
+
+    #Zip the filename input with the output folder
+    tuple_input = zip(filenames, [out_folder]*len(filenames))
+
+    pool = Pool(processes=util.CPU_COUNT)
+    num_tasks = len(filenames)
+    for i, _ in enumerate(pool.imap_unordered(__extract_plaintext_as_tuple, tuple_input), 1):
+        sys.stderr.write('\rdone {0:%}'.format(i/num_tasks))
+    pool.close()
+
+    print "\nDONE"
+
+if __name__ == '__main__':
+
+    filenames = glob.glob(RAW_DATA_FOLDER+'*.xml')
+    filenames = [os.path.normpath(x) for x in filenames]
+    filenames = [x for x in filenames if x not in BLACKLIST]
+
+    #extract_all_labels(filenames, DATA_FOLDER+'labels.p')
+    extract_all_plaintext(filenames, '../data/plaintext_new/')

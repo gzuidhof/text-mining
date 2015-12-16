@@ -1,5 +1,6 @@
 import dataset
 import numpy as np
+import scipy
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -10,7 +11,9 @@ from sklearn.linear_model import SGDClassifier
 
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
+from sklearn.linear_model import LogisticRegression
+
 
 from sklearn.metrics import f1_score, accuracy_score, classification_report, zero_one_loss
 from sklearn.externals import joblib
@@ -66,7 +69,11 @@ def multilabel_classifier(X_train, y_train, X_test, y_test):
     y_test_mlb = multilabel_binary_y(y_test)
 
     svc_ovr = Pipeline([('tfidf', TfidfVectorizer()),
-                        ('ovr-svc',OneVsRestClassifier(SVC(kernel='linear'),n_jobs=-2)),
+                        #('vect', CountVectorizer()),
+                        #('ovr-svc',OneVsRestClassifier(SVC(kernel='rbf'),n_jobs=-2)),
+                        ('linear-ovr-svc',OneVsRestClassifier(LinearSVC(),n_jobs=-2)),
+                        #('linear-ovr-regression', OneVsRestClassifier(LogisticRegression(solver='liblinear'), n_jobs=-2))
+                        #('clf', OneVsRestClassifier(MultinomialNB(), n_jobs=-2))
     ])
 
     print "Fitting model"
@@ -93,7 +100,11 @@ def evaluate_multilabel(y_test, label_list):
 
     print classification_report(y_test_mlb, y_pred, target_names=label_list)
 
-    print zero_one_loss(y_test_mlb, y_pred)
+    print "Zero-one classification loss", zero_one_loss(y_test_mlb, y_pred)
+
+    im = y_test_mlb + y_pred*2
+    scipy.misc.imsave('predictions.png',im)
+
 
 if __name__ == '__main__':
 
@@ -106,5 +117,5 @@ if __name__ == '__main__':
     print "Size of train set", len(X_train), ", Test set", len(X_test)
 
     #classifier_per_label(X_train,y_train,X_test,y_test)
-    #multilabel_classifier(X_train,y_train,X_test,y_test)
+    multilabel_classifier(X_train,y_train,X_test,y_test)
     evaluate_multilabel(y_test, label_list)
