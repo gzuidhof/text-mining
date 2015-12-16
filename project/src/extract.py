@@ -13,8 +13,7 @@ PLAINTEXT_FOLDER = '../data/plaintext/'
 DATA_FOLDER = '../data/'
 
 #Nonsense files (website sources, PDFs)
-#BLACKLIST = ['111251559.xml']
-BLACKLIST=[]
+BLACKLIST = ['111251559.xml']
 for x in range(95484218,95484250):
     BLACKLIST.append(str(x)+'.xml')
 BLACKLIST = map(lambda x: RAW_DATA_FOLDER+x, BLACKLIST)
@@ -54,29 +53,35 @@ def extract_plaintext(filepath, outpath):
 
         #Filename without extension
         file_id = util.filename_without_extension(filepath)
+        plain_text = []
 
         try:
             obj = xmltodict.parse(fd.read())
             root = obj['open-rechtspraak']
             metadata = root['rdf:RDF']
+
+            #############
+            # Extract content as plain text
+            #############
+
+            if 'uitspraak' in root:
+                content = root['uitspraak']
+            else:
+                content = root['conclusie']
+
+            if 'inhoudsindicatie' in root:
+                summary = root['inhoudsindicatie']
+                as_plain_text(summary, plain_text)
+
+            as_plain_text(content, plain_text)
+
         except:
             print "\nUnexpected error:", sys.exc_info()[0]
             print "filepath:", filepath
             print "file_id:", file_id, "\n"
             return
 
-        if 'uitspraak' in root:
-            content = root['uitspraak']
-        else:
-            content = root['conclusie']
-
-        #############
-        # Extract content as plain text
-        #############
-
-        plain_text = []
-        as_plain_text(content, plain_text)
-
+        #Write to outfile
         with codecs.open(outpath+file_id+'.txt', 'w', 'utf-8') as f:
              for line in plain_text:
                     print>>f, line
