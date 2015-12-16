@@ -27,14 +27,18 @@ if __name__ == '__main__':
         print ('> PROCESSING', filename, str(len(seen))+'/'+str(len(files)))
 
         seen.append(filename)
-        #Timings
+
+        #Timings (estimation of time remaining)
         runtime = time.time() - start_time
         per_document_time = runtime/len(seen)
         remaining_time = (len(files)-len(seen))*per_document_time
         total_time = remaining_time+runtime
 
 
-        print ("RUNTIME", duration_to_string(runtime), "("+duration_to_string(per_document_time)+")", 'REMAINING', duration_to_string(remaining_time), 'TOTAL', duration_to_string(total_time))
+        print ("RUNTIME", duration_to_string(runtime),
+         "("+duration_to_string(per_document_time)+")",
+          'REMAINING', duration_to_string(remaining_time),
+           'TOTAL', duration_to_string(total_time))
 
         frogged_filename = filename.split('/')[-1].split('.txt')[0]
 

@@ -64,16 +64,17 @@ def extract_plaintext(filepath, outpath):
             # Extract content as plain text
             #############
 
-            if 'uitspraak' in root:
-                content = root['uitspraak']
-            else:
-                content = root['conclusie']
-
             if 'inhoudsindicatie' in root:
                 summary = root['inhoudsindicatie']
                 as_plain_text(summary, plain_text)
 
-            as_plain_text(content, plain_text)
+            if 'uitspraak' in root:
+                content = root['uitspraak']
+                as_plain_text(content, plain_text)
+
+            if 'conclusie' in root:
+                content = root['conclusie']
+                as_plain_text(content, plain_text)
 
         except:
             print "\nUnexpected error:", sys.exc_info()[0]
@@ -125,7 +126,7 @@ def extract_labels(filepath):
 
 
 def extract_all_labels(filenames, out_filepath=DATA_FOLDER+'labels.p', chunk_size=1000):
-    print "EXTRACTING ALL LABELS INTO {1}".format(out_filepath)
+    print "EXTRACTING ALL LABELS INTO {0}".format(out_filepath)
     all_labels = []
     label_dict = {}
 
@@ -162,7 +163,7 @@ def __extract_plaintext_as_tuple(filename_outfolder_tuple):
 
 
 def extract_all_plaintext(filenames, out_folder=PLAINTEXT_FOLDER):
-    print "EXTRACTING ALL PLAINTEXT FROM {0} FILES INTO {1}".format(len(filenames),out_folder)
+    print "EXTRACTING PLAINTEXT FROM {0} FILES INTO {1}".format(len(filenames),out_folder)
 
     #Zip the filename input with the output folder
     tuple_input = zip(filenames, [out_folder]*len(filenames))
@@ -176,10 +177,11 @@ def extract_all_plaintext(filenames, out_folder=PLAINTEXT_FOLDER):
     print "\nDONE"
 
 if __name__ == '__main__':
+    in_folder = RAW_DATA_FOLDER
+    out_folder = PLAINTEXT_FOLDER
 
-    filenames = glob.glob(RAW_DATA_FOLDER+'*.xml')
-    filenames = [os.path.normpath(x) for x in filenames]
-    filenames = [x for x in filenames if x not in BLACKLIST]
+    todo_filenames = util.todo_filepaths(in_folder,'.xml', out_folder,'.txt', blacklist=BLACKLIST)
 
-    #extract_all_labels(filenames, DATA_FOLDER+'labels.p')
-    extract_all_plaintext(filenames, '../data/plaintext_new/')
+    all_filenames = util.todo_filepaths(in_folder,'.xml', blacklist=BLACKLIST)
+    extract_all_plaintext(all_filenames, out_folder)
+    extract_all_labels(all_filenames, DATA_FOLDER+'labels.p')
