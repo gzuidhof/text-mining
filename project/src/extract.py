@@ -8,12 +8,15 @@ import os, sys
 from collections import Counter, OrderedDict
 from multiprocessing.pool import ThreadPool, Pool
 
-RAW_DATA_FOLDER = '../data/raw/'
-PLAINTEXT_FOLDER = '../data/plaintext/'
+RAW_DATA_FOLDER = '../data/raw_new/'
+PLAINTEXT_FOLDER = '../data/plaintext_new/'
 DATA_FOLDER = '../data/'
 
 #Nonsense files (website sources, PDFs)
-BLACKLIST = ['111251559.xml']
+BLACKLIST = ['111251559.xml','100410518.xml','100410517.xml',
+'100410520.xml','101269578.xml','103382656.xml','105316443.xml','105316475.xml',
+'106383445.xml','107272081.xml','107272273.xml','107731834.xml','108448680.xml',
+'108525279.xml','109900347.xml','110300759.xml','113314243.xml','113629960.xml']
 for x in range(95484218,95484250):
     BLACKLIST.append(str(x)+'.xml')
 BLACKLIST = map(lambda x: RAW_DATA_FOLDER+x, BLACKLIST)
@@ -23,7 +26,7 @@ BLACKLIST = [os.path.normpath(path) for path in BLACKLIST]
 NONSENSE_KEYS = ['@lang','@id','@xml:space','@xmlns','@role','@mark','@xmlns:xsd',
 '@xmlns:xsi','@xmlns:xlink', '@linkend','@label','@cols','@colname','@fileref','@align','@scale',
 '@width','@height','@format','@numeration','@depth', '@namest','@nameend', '@xmlns:rs',
-'superscript','@morerows','@rowsep']
+'@morerows','@rowsep','@valign','@xmlns:nsxlink','@nsxlink:href', '@border', '@colwidth']
 
 #Recursively retrieves plain text from XML structure
 def as_plain_text(node, text_so_far):
@@ -43,7 +46,7 @@ def as_plain_text(node, text_so_far):
         if type(value) in [list,dict,OrderedDict]:
             as_plain_text(value, text_so_far) #Expand node
         else:
-            if key in ['para','title','#text','nr','bridgehead'] and value is not None:
+            if key in ['para','title','#text','nr','bridgehead','alt','subscript','superscript'] and value is not None:
                 text_so_far.append(value)
             elif key not in NONSENSE_KEYS and value is not None:
                 print "UNEXPECTED KEY/VALUE", key, value
@@ -76,16 +79,25 @@ def extract_plaintext(filepath, outpath):
                 content = root['conclusie']
                 as_plain_text(content, plain_text)
 
+            #print filepath
+            #Write to outfile
+            with codecs.open(outpath+file_id+'.txt', 'w', 'utf-8') as f:
+                 for line in plain_text:
+                        print>>f, line
+
+        except KeyError, e:
+            #Skip silently
+
+            #print "ERROR:", sys.exc_info()[0]
+            #print "Skipping faulty:", filepath
+            #print "file_id:", file_id
+            return
         except:
-            print "\nUnexpected error:", sys.exc_info()[0]
-            print "filepath:", filepath
-            print "file_id:", file_id, "\n"
+            print "ERROR:", sys.exc_info()[0]
+            print "file_id:", file_id
             return
 
-        #Write to outfile
-        with codecs.open(outpath+file_id+'.txt', 'w', 'utf-8') as f:
-             for line in plain_text:
-                    print>>f, line
+
 
 def extract_labels(filepath):
     with open(filepath) as fd:
@@ -97,35 +109,40 @@ def extract_labels(filepath):
             obj = xmltodict.parse(fd.read())
             root = obj['open-rechtspraak']
             metadata = root['rdf:RDF']
+
+            #############
+            # Extract labels
+            #############
+
+            description = metadata['rdf:Description']
+
+            if type(description) is list:
+                description = description[0]
+            law_areas = description['dcterms:subject']
+
+            if type(law_areas) is not list:
+                law_areas = [law_areas]
+
+            text_labels = []
+            for x in law_areas:
+                labels = x['#text'].split('; ')
+                text_labels += labels
+
+            return text_labels
+
+        except KeyError, e:
+            #Skip silently
+
+            #print "ERROR:", sys.exc_info()[0]
+            #print "Skipping faulty:", filepath
+            #print "file_id:", file_id
+            return
         except:
-            print "Unexpected error:", sys.exc_info()[0]
-            print "filepath:", filepath
+            print "ERROR:", sys.exc_info()[0]
             print "file_id:", file_id
+            return
 
-        #############
-        # Extract labels
-        #############
-
-        description = metadata['rdf:Description']
-
-        if type(description) is list:
-            description = description[0]
-        law_areas = description['dcterms:subject']
-
-        if type(law_areas) is not list:
-            law_areas = [law_areas]
-
-        text_labels = []
-        for x in law_areas:
-            labels = x['#text'].split('; ')
-            text_labels += labels
-
-        return text_labels
-
-        label_dict[file_id] = text_labels
-
-
-def extract_all_labels(filenames, out_filepath=DATA_FOLDER+'labels.p', chunk_size=1000):
+def extract_all_labels(filenames, out_filepath=DATA_FOLDER+'labels.p', chunk_size=2000):
     print "EXTRACTING ALL LABELS INTO {0}".format(out_filepath)
     all_labels = []
     label_dict = {}
@@ -138,9 +155,10 @@ def extract_all_labels(filenames, out_filepath=DATA_FOLDER+'labels.p', chunk_siz
         pool.close()
 
         for filepath, labels in zip(chunk, chunk_labels):
-            file_id = util.filename_without_extension(filepath)
-            label_dict[file_id] = labels
-            all_labels += labels
+            if labels is not None:
+                file_id = util.filename_without_extension(filepath)
+                label_dict[file_id] = labels
+                all_labels += labels
 
         print i+1, '/', len(filenames_chunks)
 
@@ -169,6 +187,7 @@ def extract_all_plaintext(filenames, out_folder=PLAINTEXT_FOLDER):
     tuple_input = zip(filenames, [out_folder]*len(filenames))
 
     pool = Pool(processes=util.CPU_COUNT)
+    #pool = Pool(processes=1)
     num_tasks = len(filenames)
     for i, _ in enumerate(pool.imap_unordered(__extract_plaintext_as_tuple, tuple_input), 1):
         sys.stderr.write('\rdone {0:%}'.format(i/num_tasks))
@@ -183,5 +202,5 @@ if __name__ == '__main__':
     todo_filenames = util.todo_filepaths(in_folder,'.xml', out_folder,'.txt', blacklist=BLACKLIST)
 
     all_filenames = util.todo_filepaths(in_folder,'.xml', blacklist=BLACKLIST)
-    extract_all_plaintext(all_filenames, out_folder)
+    #extract_all_plaintext(all_filenames, out_folder)
     extract_all_labels(all_filenames, DATA_FOLDER+'labels.p')

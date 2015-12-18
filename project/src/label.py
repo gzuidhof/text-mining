@@ -35,5 +35,5 @@ if __name__ == '__main__':
         print Counter(label_counts)
 
         for v in label_dict.values():
-            if len(v)>2:
+            if len(v)>3:
                 print v

@@ -3,8 +3,9 @@ import pandas as pd
 import glob
 import pickle
 import sys
+import util
 from collections import OrderedDict
-from multiprocessing.pool import ThreadPool
+from multiprocessing.pool import ThreadPool, Pool
 
 INPUT_FOLDER = '../data/frogged'
 DATA_FOLDER = '../data'
@@ -36,26 +37,27 @@ def process(filepath):
     lowercased = as_string.lower()
     return lowercased
 
-def filter_and_lemma():
+def filter_and_lemma(chunk_size=2000):
     files = glob.glob(INPUT_FOLDER+'/*.frog.out')
 
     lemmatized = {}
 
-    def process_file(filepath):
-        file_id = filepath.split('\\')[-1].split('.')[0]
-        lemmatized[file_id] = process(filepath)
+    #Split all files in the list into chunks
+    file_chunks = util.chunks(files, chunk_size)
 
-    pool = ThreadPool(processes=8)
-    num_tasks = len(files)
-    for i, _ in enumerate(pool.imap_unordered(process_file, files), 1):
-        sys.stderr.write('\rdone {0:%}'.format(i/num_tasks))
-    pool.close()
+    for i, chunk in enumerate(file_chunks):
+        pool = Pool(processes=util.CPU_COUNT)
+        filtered_lemmatized = pool.map(process, chunk)
+        pool.close()
+
+        for filename, value in zip(chunk, filtered_lemmatized):
+            file_id = util.filename_without_extension(filename, '.frog.out')
+            lemmatized[file_id] = value
+
+        print i+1, '/', len(file_chunks)
 
     #Order by key
     ordered = OrderedDict(sorted(lemmatized.items()))
-
-    #for k,v in ordered.iteritems():
-        #print k, v[:65]
 
     with open(DATA_FOLDER+'\\processed.p','w') as f:
         pickle.dump(ordered,f)
