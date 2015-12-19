@@ -44,7 +44,7 @@ def frog_process_files(files, verbose=True):
             f.write(output)
 
 if __name__ == '__main__':
-    INPUT_FOLDER = '../data/plaintext/'
+    INPUT_FOLDER = '../data/plaintext_new/'
     OUTPUT_FOLDER = '../data/frogged_new/'
 
     files = util.todo_filepaths(INPUT_FOLDER, '.txt', OUTPUT_FOLDER, '.frog.out')

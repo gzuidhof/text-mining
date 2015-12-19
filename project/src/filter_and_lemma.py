@@ -7,7 +7,7 @@ import util
 from collections import OrderedDict
 from multiprocessing.pool import ThreadPool, Pool
 
-INPUT_FOLDER = '../data/frogged'
+INPUT_FOLDER = '../data/frogged_new'
 DATA_FOLDER = '../data'
 
 #PoS filter #http://ilk.uvt.nl/menno/files/docs/p_lrec_nlp4ugc12.pdf
