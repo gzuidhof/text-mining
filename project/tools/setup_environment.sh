@@ -12,8 +12,12 @@ pip install pickle
 git clone https://github.com/proycon/LaMachine lama
 bash lama/virtualenv-bootstrap.sh -y
 
+#Git pull the newest version
+cd text-mining
+git pull
+
 #Create necessary folders
-cd text-mining/project/tools
+cd project/tools
 bash create_folders.sh
 cd ../data
 
