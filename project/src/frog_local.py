@@ -4,6 +4,8 @@ import time
 import frog
 import glob
 import util
+import pickle
+import os
 from multiprocessing.pool import Pool
 
 def duration_to_string(seconds):
@@ -48,8 +50,15 @@ if __name__ == '__main__':
     OUTPUT_FOLDER = '../data/frogged/'
 
     files = util.todo_filepaths(INPUT_FOLDER, '.txt', OUTPUT_FOLDER, '.frog.out')
-    print ("N_CPU", util.CPU_COUNT)
+
+    if os.path.exists('../data/frog_todo.p', 'r'):
+        print "USING FROG TODO!"
+        with open('../data/frog_todo.p') as f:
+            files = pickle.load(f)
+
+
     n_processes = 1
+    print ("N_CPU", util.CPU_COUNT, " N PROCESSES", n_processes)
 
     file_chunks = util.split(files, n_processes)
 
