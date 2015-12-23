@@ -21,5 +21,5 @@ cd ../data
 wget -O plaintext.zip https://www.googledrive.com/host/0B1VA6lQr6QuOZzhwcEZEMFYyRUU
 unzip -q plaintext.zip
 
-#Go to text-mining root
-cd ../..
+#Go to home
+cd ~
