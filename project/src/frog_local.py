@@ -1,7 +1,6 @@
 from __future__ import division
 import sys
 import time
-import frog
 import glob
 import util
 import pickle
