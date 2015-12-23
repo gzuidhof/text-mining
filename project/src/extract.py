@@ -8,8 +8,8 @@ import os, sys
 from collections import Counter, OrderedDict
 from multiprocessing.pool import ThreadPool, Pool
 
-RAW_DATA_FOLDER = '../data/raw_new/'
-PLAINTEXT_FOLDER = '../data/plaintext_new/'
+RAW_DATA_FOLDER = '../data/raw/'
+PLAINTEXT_FOLDER = '../data/plaintext/'
 DATA_FOLDER = '../data/'
 
 #Nonsense files (website sources, PDFs)
@@ -202,5 +202,5 @@ if __name__ == '__main__':
     todo_filenames = util.todo_filepaths(in_folder,'.xml', out_folder,'.txt', blacklist=BLACKLIST)
 
     all_filenames = util.todo_filepaths(in_folder,'.xml', blacklist=BLACKLIST)
-    #extract_all_plaintext(all_filenames, out_folder)
-    extract_all_labels(all_filenames, DATA_FOLDER+'labels.p')
+    extract_all_plaintext(todo_filenames, out_folder)
+    #extract_all_labels(all_filenames, DATA_FOLDER+'labels.p')

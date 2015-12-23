@@ -2,11 +2,11 @@ import pickle
 from collections import Counter, OrderedDict
 import itertools
 
-DATA_FOLDER = '..\\data'
+DATA_FOLDER = '../data/'
 
 #Looks at all labels, orders them by occurence, writes to file
 if __name__ == '__main__':
-    with open(DATA_FOLDER+'\\labels.p','r') as label_file:
+    with open(DATA_FOLDER+'labels.p','r') as label_file:
         label_dict = pickle.load(label_file)
 
         #Remove double entries
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
         label_list = zip(*Counter(labels).most_common())[0]
 
-        with open(DATA_FOLDER+'\\label_list.p','w') as f:
+        with open(DATA_FOLDER+'label_list.p','w') as f:
             pickle.dump(label_list,f)
 
         label_dict_as_int = {}

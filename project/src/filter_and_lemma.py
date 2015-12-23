@@ -7,8 +7,8 @@ import util
 from collections import OrderedDict
 from multiprocessing.pool import ThreadPool, Pool
 
-INPUT_FOLDER = '../data/frogged_new'
-DATA_FOLDER = '../data'
+INPUT_FOLDER = '../data/frogged/'
+DATA_FOLDER = '../data/'
 
 #PoS filter #http://ilk.uvt.nl/menno/files/docs/p_lrec_nlp4ugc12.pdf
 FILTER = tuple(['LET','TW','LID','VG', 'VZ','SPEC(symb)','BW','VNW'])
@@ -38,7 +38,7 @@ def process(filepath):
     return lowercased
 
 def filter_and_lemma(chunk_size=2000):
-    files = glob.glob(INPUT_FOLDER+'/*.frog.out')
+    files = glob.glob(INPUT_FOLDER+'*.frog.out')
 
     lemmatized = {}
 
@@ -59,7 +59,7 @@ def filter_and_lemma(chunk_size=2000):
     #Order by key
     ordered = OrderedDict(sorted(lemmatized.items()))
 
-    with open(DATA_FOLDER+'\\processed.p','w') as f:
+    with open(DATA_FOLDER+'processed.p','w') as f:
         pickle.dump(ordered,f)
     print "Done!"
 
