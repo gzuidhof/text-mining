@@ -18,7 +18,7 @@ def frog_process_files(files, verbose=True):
     seen = []
     start_time = time.time()
 
-    frogger = frog.Frog(frog.FrogOptions(parser=False,mwu=False,ner=False,morph=False,chunking=False, numThreads=8), "/etc/frog/frog.cfg")
+    frogger = frog.Frog(frog.FrogOptions(parser=False,mwu=False,ner=False,morph=False,chunking=False, numThreads=8))
 
     for i, filename in enumerate(files):
         with open(filename,'r') as in_file:
@@ -55,6 +55,7 @@ if __name__ == '__main__':
         print ("USING FROG TODO!")
         with open('../data/frog_todo.p', 'rb') as f:
             files = pickle.load(f)
+            files = [s.replace('\\','/') for s in files]
 
 
     n_processes = 1
