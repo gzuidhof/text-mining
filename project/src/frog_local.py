@@ -51,9 +51,9 @@ if __name__ == '__main__':
 
     files = util.todo_filepaths(INPUT_FOLDER, '.txt', OUTPUT_FOLDER, '.frog.out')
 
-    if os.path.exists('../data/frog_todo.p', 'r'):
+    if os.path.exists('../data/frog_todo.p'):
         print ("USING FROG TODO!")
-        with open('../data/frog_todo.p') as f:
+        with open('../data/frog_todo.p', 'r') as f:
             files = pickle.load(f)
 
 
