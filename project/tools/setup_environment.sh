@@ -1,9 +1,11 @@
+cd ~
+
 #Update existing packages and distro
 apt-get update
 apt-get -y dist-upgrade
 
 #Install dependencies
-apt-get install -y git wget unzip
+apt-get install -y git wget unzip zip
 apt-get install -y python-pip cython cython3 libxml2-dev libicu-dev
 
 pip install pickle

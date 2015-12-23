@@ -8,3 +8,7 @@ wget -O text-mining/project/data/frog_todo.p https://dl.dropboxusercontent.com/u
 
 cd text-mining/project/src
 python frog_local.py
+
+#Done? ZIP results
+cd ../data
+zip out frogged/*
