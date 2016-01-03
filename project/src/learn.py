@@ -1,3 +1,4 @@
+from __future__ import division
 import dataset
 import numpy as np
 import scipy
@@ -18,6 +19,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score, classification_report, zero_one_loss
 from sklearn.externals import joblib
 
+from tqdm import tqdm
 
 def binary_y(y, val=0):
     return np.array([int(val in sample) for sample in y])
@@ -71,25 +73,53 @@ def multilabel_classifier(X_train, y_train, X_test, y_test):
     svc_ovr = Pipeline([('tfidf', TfidfVectorizer()),
                         #('vect', CountVectorizer()),
                         #('ovr-svc',OneVsRestClassifier(SVC(kernel='rbf'),n_jobs=-2)),
-                        ('linear-ovr-svc',OneVsRestClassifier(LinearSVC(),n_jobs=-2)),
-                        #('linear-ovr-regression', OneVsRestClassifier(LogisticRegression(solver='liblinear'), n_jobs=-2))
-                        #('clf', OneVsRestClassifier(MultinomialNB(), n_jobs=-2))
+                        #('linear-ovr-svc',OneVsRestClassifier(LinearSVC(),n_jobs=3)),
+                        ('linear-ovr-regression', OneVsRestClassifier(LogisticRegression(solver='liblinear'), n_jobs=-2))
+                        #('mnb-ovr-clf', OneVsRestClassifier(MultinomialNB(), n_jobs=-2))
     ])
 
     print "Fitting model"
     svc_ovr.fit(X_train, y_train_mlb)
     print "Done fitting, now predicting"
     joblib.dump(svc_ovr, '../models/ovrmodel_ml.pkl')
-    y_pred = svc_ovr.predict(X_test)
+
+
+def predict(X_train, y_train, X_test, y_test):
+    model = joblib.load('../models/ovrmodel_ml.pkl')
+    y_pred_proba = model.predict_proba(X_test)
+    y_pred = model.predict(X_test)
 
     joblib.dump(y_pred, '../models/pred_ml.pkl')
+    joblib.dump(y_pred_proba, '../models/pred_ml_proba.pkl')
 
-def evaluate_multilabel(y_test, label_list):
+def improve_predictions(probability_predictions_file='../models/pred_ml_proba.pkl', out_file='../models/pred_ml_improved.pkl'):
+    print "---\nForcing at least one label (most likely)"
+    print "Loading probability predictions"
+    y_pred_proba = joblib.load(probability_predictions_file)
+
+    #Because we use a one-versus-rest classifier, there may be documents without any labels
+    #We deal with this by adding the most likely labels
+
+    y_pred_improved = np.zeros(y_pred_proba.shape)
+    print "Converting to binary predictions"
+    y_pred = np.where(y_pred_proba >= 0.5, 1, 0)
+
+    for i, (prediction, prediction_proba) in enumerate(tqdm(zip(y_pred, y_pred_proba))):
+        if sum(prediction) == 0:
+            most_likely_label_index = np.argmax(prediction_proba)
+            y_pred_improved[i,most_likely_label_index] = 1
+        y_pred_improved[i] += prediction
+
+    print np.sum(np.subtract(y_pred_improved,y_pred)), "labels added"
+
+    print "Saving to file"
+    joblib.dump(y_pred_improved, out_file)
+    print "Done!\n---"
+
+def evaluate_multilabel(y_test, label_list, predictions_file='../models/pred_ml.pkl'):
 
     y_test_mlb = multilabel_binary_y(y_test)
-    y_pred = joblib.load('../models/pred_ml.pkl')
-    print len(y_pred)
-    print len(y_test_mlb)
+    y_pred = joblib.load(predictions_file)
 
     print "F1 score micro:", f1_score(y_test_mlb, y_pred, average='micro', labels=label_list)
     print "F1 score weighted:", f1_score(y_test_mlb, y_pred, average='weighted', labels=label_list)
@@ -109,13 +139,18 @@ def evaluate_multilabel(y_test, label_list):
 if __name__ == '__main__':
 
     #Load data
+    print "Loading labels"
     label_list = dataset.load_labels()
+    print "Loading train set"
 
-    X_train,y_train,filenames_train = dataset.load_train()
+    #X_train,y_train,filenames_train = dataset.load_train()
+    print "Loading test set"
     X_test,y_test,filenames_test = dataset.load_test()
 
-    print "Size of train set", len(X_train), ", Test set", len(X_test)
+    #print "Size of train set", len(X_train), ", Test set", len(X_test)
 
     #classifier_per_label(X_train,y_train,X_test,y_test)
-    multilabel_classifier(X_train,y_train,X_test,y_test)
-    evaluate_multilabel(y_test, label_list)
+    #multilabel_classifier(X_train,y_train,X_test,y_test)
+    #predict(X_train,y_train,X_test,y_test)
+    improve_predictions()
+    evaluate_multilabel(y_test, label_list, '../models/pred_ml_improved.pkl')
