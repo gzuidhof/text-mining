@@ -18,7 +18,7 @@ def frog_process_files(files, verbose=True):
     seen = []
     start_time = time.time()
 
-    frogger = frog.Frog(frog.FrogOptions(parser=False,mwu=False,ner=False,morph=False,chunking=False, numThreads=8))
+    frogger = frog.Frog(frog.FrogOptions(parser=False,mwu=False,ner=False,morph=False,chunking=False, numThreads=8),'/etc/frog/frog.cfg')
 
     for i, filename in enumerate(files):
         with open(filename,'r') as in_file:
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     OUTPUT_FOLDER = '../data/frogged/'
 
     files = util.todo_filepaths(INPUT_FOLDER, '.txt', OUTPUT_FOLDER, '.frog.out')
-
+    files = sorted(files)[::-1]
     if os.path.exists('../data/frog_todo.p'):
         print ("USING FROG TODO!")
         with open('../data/frog_todo.p', 'rb') as f:
@@ -58,7 +58,7 @@ if __name__ == '__main__':
             files = [s.replace('\\','/') for s in files]
 
 
-    n_processes = 1
+    n_processes = 2
     print ("N_CPU", util.CPU_COUNT, " N PROCESSES", n_processes)
 
     file_chunks = util.split(files, n_processes)

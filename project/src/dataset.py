@@ -21,7 +21,7 @@ def split_dataset():
     X = [x_dict[key] for key in keys]
     y = [(key, y_dict[key]) for key in keys]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, test_size=0.25)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, test_size=0.5)
     print 'Dataset split into trainset of ', len(X_train), 'and testset of', len(X_test)
 
     print 'Now writing to file'
