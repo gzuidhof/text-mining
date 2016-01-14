@@ -6,6 +6,7 @@ import sys
 import util
 from collections import OrderedDict
 from multiprocessing.pool import ThreadPool, Pool
+from tqdm import tqdm
 
 INPUT_FOLDER = '../data/frogged/'
 DATA_FOLDER = '../data/'
@@ -45,7 +46,7 @@ def filter_and_lemma(chunk_size=2000):
     #Split all files in the list into chunks
     file_chunks = util.chunks(files, chunk_size)
 
-    for i, chunk in enumerate(file_chunks):
+    for i, chunk in enumerate(tqdm(file_chunks)):
         pool = Pool(processes=util.CPU_COUNT)
         filtered_lemmatized = pool.map(process, chunk)
         pool.close()
@@ -53,8 +54,6 @@ def filter_and_lemma(chunk_size=2000):
         for filename, value in zip(chunk, filtered_lemmatized):
             file_id = util.filename_without_extension(filename, '.frog.out')
             lemmatized[file_id] = value
-
-        print i+1, '/', len(file_chunks)
 
     #Order by key
     ordered = OrderedDict(sorted(lemmatized.items()))
