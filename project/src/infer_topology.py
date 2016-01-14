@@ -8,8 +8,15 @@ from tqdm import tqdm
 DATA_FOLDER = '../data/'
 
 
-def infer_topology_rules(y_values, verbose=False):
+def infer_topology_rules(y_values=None, verbose=False):
+    if y_values is None:
+        with open(DATA_FOLDER+'labels_int.p', 'r') as f:
+            y_dict = pickle.load(f)
+            y_values = y_dict.values()
+
     print "Infering topology from {0} classifications".format(len(y_values))
+
+
     label_list = dataset.load_labels()
     n_labels = len(label_list)
 

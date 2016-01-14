@@ -1,5 +1,10 @@
 import pickle
 import dataset
+import learn
+from sklearn.metrics import f1_score, accuracy_score, classification_report, zero_one_loss, hamming_loss
+from sklearn.externals import joblib
+import numpy as np
+import infer_topology
 
 DATA_FOLDER = '../data/'
 
@@ -26,7 +31,7 @@ CLASSIFICATIONS = {
 "115989647":["Bestuursrecht"], #Staats-en Bestuursrecht
 "80045894": ["Arbeidsrecht"], #Arbeids/Sociaal recht
 "88814249": ["Strafrecht"], #Strafrecht/Strafvordering
-"74177349": ["Insolventierecht", "Goederenrecht"], #Faillisementsrecht; Goederenrecht
+"74177349": ["Goederenrecht"], #Goederenrecht
 "85300096": ["Insolventierecht"], #Faillisementsrecht
 "94087262": ["Insolventierecht", "Civiel recht"], #Faillisementsrecht; Burgerlijk recht
 "103763713":["Intellectueel-eigendomsrecht"], #Intellectuele Eigendom
@@ -40,16 +45,9 @@ CLASSIFICATIONS = {
 
 #Convert to label indices instead of text
 for f in FILES:
-    #for x in MANUAL_PREDICTIONS[f]:
-        #print MANUAL_PREDICTIONS[f]
-        #print f, "Label", x, " - ", label_list.index(x)
-
     CLASSIFICATIONS[f] = [label_list.index(x) for x in CLASSIFICATIONS[f]]
 
-del label_list
-
-if __name__ == "__main__":
-
+def print_manual_classifications():
     with open(DATA_FOLDER+'labels_int.p', 'r') as f:
         y_dict = pickle.load(f)
 
@@ -61,3 +59,40 @@ if __name__ == "__main__":
                 #print label_list .index(x)
         else:
             print f, "Not in dataset"
+
+def compare_manual_vs_model():
+
+    with open(DATA_FOLDER+'labels_int.p', 'r') as f:
+        y_dict = pickle.load(f)
+
+    print "Loading test data"
+    X_test,y_test,filenames_test = dataset.load_test()
+    y_pred = joblib.load('../models/pred_ml_improved.pkl')
+
+    relevant = []
+    for pred, correct, filename in zip(y_pred, y_test, filenames_test):
+        if filename in FILES:
+            relevant.append((pred,correct,filename, CLASSIFICATIONS[filename]))
+
+    model_predictions, correct, filename, manual_predictions = zip(*relevant)
+    manual_predictions = learn.multilabel_binary_y(manual_predictions)
+    model_predictions = np.array(model_predictions)
+    correct = learn.multilabel_binary_y(correct)
+
+    rules = infer_topology.infer_topology_rules()
+    improved_manual = infer_topology.apply_topology_rules(rules, manual_predictions)
+
+    prediction_names = ["MODEL","MANUAL","IMPROVED_MANUAL"]
+    predictions = [model_predictions, manual_predictions, improved_manual]
+
+    for name, pred in zip(prediction_names, predictions):
+
+        print "\n{}\n--".format(name)
+        print "Zero-one classification loss", zero_one_loss(correct, pred)
+        print "Hamming loss", hamming_loss(correct, pred)
+        print "F1 score micro   :", f1_score(correct, pred, average='micro', labels=label_list)
+
+
+if __name__ == "__main__":
+    #print_manual_classifications()
+    compare_manual_vs_model()
