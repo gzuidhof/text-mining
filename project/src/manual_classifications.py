@@ -1,7 +1,7 @@
 import pickle
 import dataset
 import learn
-from sklearn.metrics import f1_score, accuracy_score, classification_report, zero_one_loss, hamming_loss
+from sklearn.metrics import f1_score, precision_score, recall_score, zero_one_loss, hamming_loss
 from sklearn.externals import joblib
 import numpy as np
 import infer_topology
@@ -90,8 +90,9 @@ def compare_manual_vs_model():
         print "\n{}\n--".format(name)
         print "Zero-one classification loss", zero_one_loss(correct, pred)
         print "Hamming loss", hamming_loss(correct, pred)
-        print "F1 score micro   :", f1_score(correct, pred, average='micro', labels=label_list)
-
+        print "F1 score weighted :", f1_score(correct, pred, average='weighted', labels=label_list)
+        print "Precision weighted:", precision_score(correct, pred, average='weighted', labels=label_list)
+        print "Recall weighted   :", recall_score(correct, pred, average='weighted', labels=label_list)
 
 if __name__ == "__main__":
     #print_manual_classifications()
