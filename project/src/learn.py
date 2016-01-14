@@ -16,7 +16,7 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.linear_model import LogisticRegression
 
 
-from sklearn.metrics import f1_score, accuracy_score, classification_report, zero_one_loss
+from sklearn.metrics import f1_score, accuracy_score, classification_report, zero_one_loss, hamming_loss
 from sklearn.externals import joblib
 
 from tqdm import tqdm
@@ -65,30 +65,33 @@ def classifier_per_label(X_train,y_train,X_test,y_test):
 
             print name, "      :", clf.score(X_test, y_test_binary)
 
-def multilabel_classifier(X_train, y_train, X_test, y_test):
+def multilabel_classifier(X_train, y_train):
 
     y_train_mlb = multilabel_binary_y(y_train)
-    y_test_mlb = multilabel_binary_y(y_test)
 
     svc_ovr = Pipeline([('tfidf', TfidfVectorizer()),
                         #('vect', CountVectorizer()),
                         #('ovr-svc',OneVsRestClassifier(SVC(kernel='rbf'),n_jobs=-2)),
                         #('linear-ovr-svc',OneVsRestClassifier(LinearSVC(),n_jobs=3)),
-                        ('linear-ovr-regression', OneVsRestClassifier(LogisticRegression(solver='liblinear'), n_jobs=-2))
-                        #('mnb-ovr-clf', OneVsRestClassifier(MultinomialNB(), n_jobs=-2))
+                        #('linear-ovr-regression', OneVsRestClassifier(LogisticRegression(solver='liblinear'), n_jobs=-2))
+                        ('mnb-ovr-clf', OneVsRestClassifier(MultinomialNB(), n_jobs=-2))
     ])
 
     print "Fitting model"
     svc_ovr.fit(X_train, y_train_mlb)
-    print "Done fitting, now predicting"
+    print "Done, saving model to file"
     joblib.dump(svc_ovr, '../models/ovrmodel_ml.pkl')
 
 
-def predict(X_train, y_train, X_test, y_test):
+def predict(X_test, y_test):
+    print "Loading model"
     model = joblib.load('../models/ovrmodel_ml.pkl')
+
+    print "Predicting"
     y_pred_proba = model.predict_proba(X_test)
     y_pred = model.predict(X_test)
 
+    print "Saving predictions to file"
     joblib.dump(y_pred, '../models/pred_ml.pkl')
     joblib.dump(y_pred_proba, '../models/pred_ml_proba.pkl')
 
@@ -128,9 +131,10 @@ def evaluate_multilabel(y_test, label_list, predictions_file='../models/pred_ml.
 
     print "Accuracy", accuracy_score(y_test_mlb, y_pred)
 
-    print classification_report(y_test_mlb, y_pred, target_names=label_list)
+    print classification_report(y_test_mlb, y_pred, target_names=label_list, digits=5)
 
     print "Zero-one classification loss", zero_one_loss(y_test_mlb, y_pred)
+    print "Hamming loss", hamming_loss(y_test_mlb, y_pred)
 
     im = y_test_mlb + y_pred*2
     scipy.misc.imsave('predictions.png',im)
@@ -141,16 +145,20 @@ if __name__ == '__main__':
     #Load data
     print "Loading labels"
     label_list = dataset.load_labels()
-    print "Loading train set"
 
-    #X_train,y_train,filenames_train = dataset.load_train()
-    print "Loading test set"
-    X_test,y_test,filenames_test = dataset.load_test()
+    print "Loading train set"
+    X_train,y_train,filenames_train = dataset.load_train()
 
     #print "Size of train set", len(X_train), ", Test set", len(X_test)
 
-    #classifier_per_label(X_train,y_train,X_test,y_test)
-    #multilabel_classifier(X_train,y_train,X_test,y_test)
-    #predict(X_train,y_train,X_test,y_test)
-    improve_predictions()
+    #multilabel_classifier(X_train,y_train)
+
+    #Unload train set from memory
+    del X_train, y_train, filenames_train
+
+    print "Loading test set"
+    X_test,y_test,filenames_test = dataset.load_test()
+
+    #predict(X_test,y_test)
+    #improve_predictions()
     evaluate_multilabel(y_test, label_list, '../models/pred_ml_improved.pkl')
