@@ -15,14 +15,14 @@ MANUAL_PREDICTIONS = {
 "72102581":["Personen- en familierecht"],
 "88703198":["Personen- en familierecht"],
 "72120955": ["Civiel recht"], #Burgerlijk recht; verzekeringsrecht
-"76674874": [], #Huurrecht/Woonrecht
-"89433288": [], #Strafrecht/Strafvordering
-"80114536": [],#Strafrecht/Strafvordering
+"76674874": ["Civiel recht"], #Huurrecht/Woonrecht
+"89433288": ["Strafrecht"], #Strafrecht/Strafvordering
+"80114536": ["Strafrecht"],#Strafrecht/Strafvordering
 "87366150": ["Bestuursrecht"], #/Staatsrechts
-"87366200": [], #Burgerlijke rechtsvordering
-"76745162": [], #Burgerlijke rechtsvordering
+"87366200": ["Burgerlijk procesrecht"], #Burgerlijke rechtsvordering
+"76745162": ["Burgerlijk procesrecht"], #Burgerlijke rechtsvordering
 "114499672":["Civiel recht"], #Burgerlijk recht
-"94086649": ["Strafrecht"],  #Strafrecht/strafvoerdering
+"94086649": ["Bestuursrecht", "Strafrecht"],  #Strafrecht/strafvordering
 "115989647":["Bestuursrecht"], #Staats-en Bestuursrecht
 "80045894": ["Arbeidsrecht"], #Arbeids/Sociaal recht
 "88814249": ["Strafrecht"], #Strafrecht/Strafvordering
@@ -33,7 +33,7 @@ MANUAL_PREDICTIONS = {
 "112385287":["Intellectueel-eigendomsrecht"], #Intellectuele Eigendom
 "74177295": ["Intellectueel-eigendomsrecht"], #Intellectuele Eigendom
 "111392832":["Arbeidsrecht", "Civiel recht"], #Arbeids/Sociaal Recht; Burgerlijk Recht
-"117338702":[], #Burgerlijke rechtsvordering
+"117338702":["Burgerlijk procesrecht"], #Burgerlijke rechtsvordering
 "105317679":["Insolventierecht"] #Faillisementsrecht
 }
 
