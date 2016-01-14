@@ -1,5 +1,6 @@
 from __future__ import division
 import dataset
+import infer_topology
 import numpy as np
 import scipy
 
@@ -15,7 +16,6 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.linear_model import LogisticRegression
 
-
 from sklearn.metrics import f1_score, accuracy_score, classification_report, zero_one_loss, hamming_loss
 from sklearn.externals import joblib
 
@@ -30,41 +30,6 @@ def multilabel_binary_y(y):
     mlb = MultiLabelBinarizer(classes=range(len(label_list)))
     return mlb.fit_transform(y)
 
-def classifier_per_label(X_train,y_train,X_test,y_test):
-
-    for x in range(25):
-
-        y_train_binary = binary_y(y_train,x) #0,1 for current label
-        y_test_binary = binary_y(y_test,x) #0,1 for current label
-        print "----"
-        print ">  LABEL", x, label_list[x], '('+str(1-np.mean(y_test_binary))+')'
-
-        mnb = Pipeline([('vect', CountVectorizer()),
-                              ('clf', MultinomialNB()),
-        ])
-        mnb_tfidf = Pipeline([('tfidf', TfidfVectorizer()),
-                              ('clf', MultinomialNB()),
-        ])
-
-
-        sgd = Pipeline([('vect', CountVectorizer()),
-                            ('clf', SGDClassifier(loss='hinge', penalty='l2',
-                                                alpha=1e-3, n_iter=5, random_state=42)),
-        ])
-
-        sgd_tfidf = Pipeline([('tfidf', TfidfVectorizer()),
-                            ('clf', SGDClassifier(loss='hinge', penalty='l2',
-                                                alpha=1e-3, n_iter=5, random_state=42)),
-        ])
-
-        names = ['MultinomNB       ','MultinomNB TF-IDF','SGDSVM           ', 'SGDSVM TF-IDF    ']
-        classifiers = [mnb,mnb_tfidf,sgd,sgd_tfidf]
-
-        for clf, name in zip(classifiers, names):
-            clf.fit(X_train, y_train_binary)
-
-            print name, "      :", clf.score(X_test, y_test_binary)
-
 def multilabel_classifier(X_train, y_train):
 
     y_train_mlb = multilabel_binary_y(y_train)
@@ -73,8 +38,8 @@ def multilabel_classifier(X_train, y_train):
                         #('vect', CountVectorizer()),
                         #('ovr-svc',OneVsRestClassifier(SVC(kernel='rbf'),n_jobs=-2)),
                         #('linear-ovr-svc',OneVsRestClassifier(LinearSVC(),n_jobs=3)),
-                        #('linear-ovr-regression', OneVsRestClassifier(LogisticRegression(solver='liblinear'), n_jobs=-2))
-                        ('mnb-ovr-clf', OneVsRestClassifier(MultinomialNB(), n_jobs=-2))
+                        ('linear-ovr-regression', OneVsRestClassifier(LogisticRegression(solver='liblinear'), n_jobs=-2))
+                        #('mnb-ovr-clf', OneVsRestClassifier(MultinomialNB(), n_jobs=-2))
     ])
 
     print "Fitting model"
@@ -95,15 +60,19 @@ def predict(X_test, y_test):
     joblib.dump(y_pred, '../models/pred_ml.pkl')
     joblib.dump(y_pred_proba, '../models/pred_ml_proba.pkl')
 
-def improve_predictions(probability_predictions_file='../models/pred_ml_proba.pkl', out_file='../models/pred_ml_improved.pkl'):
-    print "---\nForcing at least one label (most likely)"
+def improve_predictions(probability_predictions_file='../models/pred_ml_proba.pkl',
+                            out_file='../models/pred_ml_improved.pkl',
+                            use_infer_topology=True):
+
+
+    print "> IMPROVING PREDICTIONS\n--- Forcing at least one label (most likely)"
     print "Loading probability predictions"
     y_pred_proba = joblib.load(probability_predictions_file)
 
     #Because we use a one-versus-rest classifier, there may be documents without any labels
     #We deal with this by adding the most likely labels
 
-    y_pred_improved = np.zeros(y_pred_proba.shape)
+    y_pred_improved = np.zeros(y_pred_proba.shape, dtype=np.int_)
     print "Converting to binary predictions"
     y_pred = np.where(y_pred_proba >= 0.5, 1, 0)
 
@@ -114,6 +83,16 @@ def improve_predictions(probability_predictions_file='../models/pred_ml_proba.pk
         y_pred_improved[i] += prediction
 
     print np.sum(np.subtract(y_pred_improved,y_pred)), "labels added"
+
+
+
+    if use_infer_topology:
+        print "> IMPROVING PREDICTIONS\n--- Topology rules"
+        print "Loading train set y-values"
+        y_train,filenames_train = dataset.load_train_y()
+
+        rules = infer_topology.infer_topology_rules(y_train)
+        y_pred_improved = infer_topology.apply_topology_rules(rules, y_pred_improved)
 
     print "Saving to file"
     joblib.dump(y_pred_improved, out_file)
@@ -148,17 +127,17 @@ if __name__ == '__main__':
 
     print "Loading train set"
     X_train,y_train,filenames_train = dataset.load_train()
+    print "Size of train set", len(X_train)
 
-    #print "Size of train set", len(X_train), ", Test set", len(X_test)
-
-    #multilabel_classifier(X_train,y_train)
+    multilabel_classifier(X_train,y_train)
 
     #Unload train set from memory
     del X_train, y_train, filenames_train
 
     print "Loading test set"
     X_test,y_test,filenames_test = dataset.load_test()
+    print "Size of test set", len(X_test)
 
-    #predict(X_test,y_test)
-    #improve_predictions()
+    predict(X_test,y_test)
+    improve_predictions(use_infer_topology=True)
     evaluate_multilabel(y_test, label_list, '../models/pred_ml_improved.pkl')

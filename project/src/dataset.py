@@ -46,6 +46,13 @@ def load_train():
 
     return X,y,filenames
 
+def load_train_y():
+    with open(PROCESSED_FOLDER+'y_train.p', 'r') as f:
+        y_tups = pickle.load(f)
+
+    filenames, y = zip(*y_tups)
+    return y,filenames
+
 def load_test():
     with open(PROCESSED_FOLDER+'\\x_test.p', 'r') as f:
         X = pickle.load(f)
@@ -55,6 +62,7 @@ def load_test():
     filenames, y = zip(*y_tups)
 
     return X,y,filenames
+
 
 
 def load_labels():
