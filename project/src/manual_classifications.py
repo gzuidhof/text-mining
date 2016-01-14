@@ -10,7 +10,7 @@ FILES = map(str, FILES)
 label_list = dataset.load_labels()
 
 
-MANUAL_PREDICTIONS = {
+CLASSIFICATIONS = {
 "72102652":["Personen- en familierecht"],
 "72102581":["Personen- en familierecht"],
 "88703198":["Personen- en familierecht"],
@@ -37,24 +37,27 @@ MANUAL_PREDICTIONS = {
 "105317679":["Insolventierecht"] #Faillisementsrecht
 }
 
+
 #Convert to label indices instead of text
 for f in FILES:
     #for x in MANUAL_PREDICTIONS[f]:
         #print MANUAL_PREDICTIONS[f]
         #print f, "Label", x, " - ", label_list.index(x)
 
-    MANUAL_PREDICTIONS[f] = [label_list.index(x) for x in MANUAL_PREDICTIONS[f]]
+    CLASSIFICATIONS[f] = [label_list.index(x) for x in CLASSIFICATIONS[f]]
 
 del label_list
 
-with open(DATA_FOLDER+'labels_int.p', 'r') as f:
-    y_dict = pickle.load(f)
+if __name__ == "__main__":
 
-for f in FILES:
-    if f in y_dict:
-        print f, y_dict[f], MANUAL_PREDICTIONS[f]
-        #for x in MANUAL_PREDICTIONS[f]:
-            #print x
-            #print label_list .index(x)
-    else:
-        print f, "Not in dataset"
+    with open(DATA_FOLDER+'labels_int.p', 'r') as f:
+        y_dict = pickle.load(f)
+
+    for f in FILES:
+        if f in y_dict:
+            print f, y_dict[f], CLASSIFICATIONS[f]
+            #for x in MANUAL_PREDICTIONS[f]:
+                #print x
+                #print label_list .index(x)
+        else:
+            print f, "Not in dataset"
