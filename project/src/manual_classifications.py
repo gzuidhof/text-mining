@@ -90,9 +90,9 @@ def compare_manual_vs_model():
         print "\n{}\n--".format(name)
         print "Zero-one classification loss", zero_one_loss(correct, pred)
         print "Hamming loss", hamming_loss(correct, pred)
-        print "F1 score weighted :", f1_score(correct, pred, average='weighted', labels=label_list)
-        print "Precision weighted:", precision_score(correct, pred, average='weighted', labels=label_list)
-        print "Recall weighted   :", recall_score(correct, pred, average='weighted', labels=label_list)
+        print "Precision:", precision_score(correct, pred, average='weighted', labels=label_list)
+        print "Recall   :", recall_score(correct, pred, average='weighted', labels=label_list)
+        print "F1 score :", f1_score(correct, pred, average='weighted', labels=label_list)
 
 if __name__ == "__main__":
     #print_manual_classifications()

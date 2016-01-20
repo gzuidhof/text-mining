@@ -84,8 +84,6 @@ def improve_predictions(probability_predictions_file='../models/pred_ml_proba.pk
 
     print np.sum(np.subtract(y_pred_improved,y_pred)), "labels added"
 
-
-
     if use_infer_topology:
         print "> IMPROVING PREDICTIONS\n--- Topology rules"
         print "Loading train set y-values"
@@ -128,7 +126,6 @@ if __name__ == '__main__':
     print "Loading train set"
     X_train,y_train,filenames_train = dataset.load_train()
     print "Size of train set", len(X_train)
-
     multilabel_classifier(X_train,y_train)
 
     #Unload train set from memory
@@ -140,4 +137,5 @@ if __name__ == '__main__':
 
     predict(X_test,y_test)
     improve_predictions(use_infer_topology=True)
-    evaluate_multilabel(y_test, label_list, '../models/pred_ml_improved.pkl')
+    #evaluate_multilabel(y_test, label_list, '../models/pred_ml_improved.pkl')
+    evaluate_multilabel(y_test, label_list, '../models/pred_ml.pkl')

@@ -202,5 +202,5 @@ if __name__ == '__main__':
     todo_filenames = util.todo_filepaths(in_folder,'.xml', out_folder,'.txt', blacklist=BLACKLIST)
 
     all_filenames = util.todo_filepaths(in_folder,'.xml', blacklist=BLACKLIST)
-    extract_all_plaintext(todo_filenames, out_folder)
-    #extract_all_labels(all_filenames, DATA_FOLDER+'labels.p')
+    #extract_all_plaintext(todo_filenames, out_folder)
+    extract_all_labels(all_filenames, DATA_FOLDER+'labels.p')
